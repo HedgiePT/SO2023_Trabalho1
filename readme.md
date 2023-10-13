@@ -12,11 +12,12 @@ Resumo dos scripts
 ### Sintaxe
 
 `spacecheck.sh [parâmetros] diretório`
-    * Exemplo: `spacecheck.sh -n "*.conf" /etc`
+
+* Exemplo: `spacecheck.sh -n "*.conf" /etc`
 
 ### Parâmetros
 
-Pode-se usar qualquer combinação (ou nenhuma) dos seguints parâmetros.
+Pode-se usar qualquer combinação (ou nenhuma) dos seguintes parâmetros.
 
 #### Filtros
 
