@@ -68,8 +68,10 @@ Temos de cumprir estes requisitos:
 ## `spacerate.sh` - Mostra a evolução da ocupação do espaço em disco, através dos relatórios gerados pelo `spacecheck.sh`.
 
 ### Sintaxe
+
 `spacecheck.sh [parâmetros] relatório1 relatório2`
-    * Exemplo: `./staterate.sh -r spacecheck_20230923 spacecheck_20220923`
+
+* Exemplo: `./staterate.sh -r spacecheck_20230923 spacecheck_20220923`
 
 ### Parâmetros
 
