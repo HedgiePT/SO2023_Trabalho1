@@ -13,7 +13,7 @@ Resumo dos scripts
 
 `spacecheck.sh [parâmetros] diretório`
 
-* Exemplo: `spacecheck.sh -n "*.conf" /etc`
+* Exemplo: `spacecheck.sh -n ".*conf" /etc`
 
 ### Parâmetros
 
@@ -22,7 +22,7 @@ Pode-se usar qualquer combinação (ou nenhuma) dos seguintes parâmetros.
 #### Filtros
 
 * `-n <expressão regular>`: Filtar por nome do ficheiro. Só serão processados os ficheiros cujo nome obedece à expressão regular.
-    * Exemplo: `spacecheck.sh -n "*.conf"` inclui apenas os ficheiros cujo nome acaba em `.conf`.
+    * Exemplo: `spacecheck.sh -n ".*conf"` inclui apenas os ficheiros cujo nome acaba em `conf`.
 
 * `-d <data>`: Filtra por data máxima de modificação.
     * Exemplo: `spacecheck.sh -d "Sep 10 10:00"` inclui apenas ficheiros modificados até às 10:00 do dia 10 de setembro.
@@ -41,8 +41,9 @@ Estes parâmetros permitem alterar a visualização do resultado do script, orde
 
 ### Exemplo de saída (do PDF do professor)
 
-#### ```$ ./spacecheck.sh -n “.*sh” sop```
-
+```bash
+./spacecheck.sh -n “.*sh” sop
+```
 ```
 SIZE NAME 20230910 -n .*sh sop
 6723 sop
