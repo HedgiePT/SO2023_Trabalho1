@@ -63,6 +63,7 @@ done
 
 
 # Diretório pedido (último argumento)
+# FIXME: Temos de suportar vários diretórios pedidos.
 root_directory=${@:$OPTIND:1}
 
 if [[ -z "$root_directory" ]]; then
@@ -113,21 +114,20 @@ function process_directory
         if [[ -h $entry ]];
             then echo -e "DEBUG:\t\tIs symlink."; continue    # Filtrar symlinks.
         elif [[ -f $entry ]];
-            #then echo -e "DEBUG:\t\tIs file."; dir_size+=$(wc -c "$entry")
                 then echo -e "\t\tIs file."
                 if [[ ! ($entry =~ "$filter_fileName_regexp") ]];
                     then echo -e "DEBUG:\t\tDIDN'T MATCH Regexp!"
+                    continue
                 fi
                 
-                dir_size=$(echo $dir_size + $(wc -c "$entry" | awk '{ print $1 }') | bc)
+                dir_size=$(echo "$dir_size" + $(wc -c "$entry" | awk '{ print $1 }') | bc)
         elif [[ -d $entry ]];
             then echo -e "DEBUG:\t\tIs directory."; subdirs+=$entry
         else
             echo "DEBUG:\t\tISTO NÃO DEVIA ACONTECER!"
         fi
     }
-        
-    #local files=$(grep ^- $temp | 
+
     echo "DEBUG: dir_size: $dir_size"
     echo "DEBUG: subdirs: $subdirs"
     
