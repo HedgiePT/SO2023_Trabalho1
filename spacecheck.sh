@@ -100,14 +100,41 @@ function process_directory
 # ARGUMENTOS:
 #   - $1: diretório a processar.
 {
-    #FIXME: print $NF não funciona.
-    local subdirs=$(ls -l '--quoting-style=escape' "$1" | grep ^d | awk '{print $NF}')
+    local dir_size=0
+    local search_dir=$1
+    local subdirs=()
+    
+    echo "DEBUG: Entering directory $search_dir"
+    
+    for entry in "$search_dir"/*
+    {
+        echo -e "DEBUG:\tEntry: $entry"
+        
+        if [[ -h $entry ]];
+            then echo -e "DEBUG:\t\tIs symlink."; continue    # Filtrar symlinks.
+        elif [[ -f $entry ]];
+            #then echo -e "DEBUG:\t\tIs file."; dir_size+=$(wc -c "$entry")
+                then echo -e "\t\tIs file."
+                if [[ ! ($entry =~ "$filter_fileName_regexp") ]];
+                    then echo -e "DEBUG:\t\tDIDN'T MATCH Regexp!"
+                fi
+                
+                dir_size=$(echo $dir_size + $(wc -c "$entry" | awk '{ print $1 }') | bc)
+        elif [[ -d $entry ]];
+            then echo -e "DEBUG:\t\tIs directory."; subdirs+=$entry
+        else
+            echo "DEBUG:\t\tISTO NÃO DEVIA ACONTECER!"
+        fi
+    }
+        
+    #local files=$(grep ^- $temp | 
+    echo "DEBUG: dir_size: $dir_size"
     echo "DEBUG: subdirs: $subdirs"
     
-    for dir in $subdirs
-    {
-        process_directory "$1/$dir"
-    }
+#     for dir in $subdirs
+#     {
+#         process_directory "$dir"
+#     }
     
 }
 
