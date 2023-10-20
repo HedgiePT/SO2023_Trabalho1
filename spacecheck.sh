@@ -79,23 +79,6 @@ fi
 # Criar ficheiro temporário
 temp=$(mktemp) || temp=".spacecheck-$$.temp" || no_temp_file "temp"
 
-function fetch_list_and_grep
-{
-    # ARGUMENTOS:
-    #   - $1: diretório a listar.
-    
-    ls -l "$1" > $temp
-    
-    if [[ $? -ne 0 ]]; then
-        return 1
-    fi
-    
-    local tmpfilter=$(mktemp) || local tmpfilter=".spacecheck-$$-filter.temp" || no_temp_file "tmpfilter"
-    grep $filter_fileName_regexp $temp > $tmpfilter
-    mv $tmpfilter $temp
-    
-    return 0
-}
 
 function process_directory
 # ARGUMENTOS:
