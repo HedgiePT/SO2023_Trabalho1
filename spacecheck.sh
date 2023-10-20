@@ -6,7 +6,7 @@
 
 function help_usage()
 {
-    echo "Utilização: $0 [parâmetros] diretório"
+    echo "Utilização: $0 [parâmetros] diretório" >&2
 }
 
 ####################
@@ -26,7 +26,7 @@ function bad_parameter
 
 function no_temp_file
 {
-    echo "$0: Não foi possível criar um ficheiro temporário para a var \$$1"
+    echo "$0: Não foi possível criar um ficheiro temporário para a var \$$1" >&2
     exit $EXIT_CODE_UNEXPECTED_ERROR
 }
 
@@ -67,7 +67,7 @@ done
 root_directory=${@:$OPTIND:1}
 
 if [[ -z "$root_directory" ]]; then
-    echo "$0: ERRO: Não foi especificado nenhum diretório."
+    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
     bad_parameter
 fi
 
@@ -84,41 +84,47 @@ function process_directory
 # ARGUMENTOS:
 #   - $1: diretório a processar.
 {
-    local dir_size=0
     local search_dir=$1
-    local subdirs=()
+    local dir_size=0
+    declare -a subdirs
     
-    echo "DEBUG: Entering directory $search_dir"
+    echo "DEBUG: Entering directory $search_dir" >&2
     
     for entry in "$search_dir"/*
     {
-        echo -e "DEBUG:\tEntry: $entry"
+        echo -e "DEBUG:\tEntry: $entry" >&2
         
         if [[ -h $entry ]];
-            then echo -e "DEBUG:\t\tIs symlink."; continue    # Filtrar symlinks.
+            then echo -e "DEBUG:\t\tIs symlink." >&2; continue    # Filtrar symlinks.
         elif [[ -f $entry ]];
-                then echo -e "\t\tIs file."
+                then echo -e "\t\tIs file." >&2
                 if [[ ! ($entry =~ "$filter_fileName_regexp") ]];
-                    then echo -e "DEBUG:\t\tDIDN'T MATCH Regexp!"
+                    then echo -e "DEBUG:\t\tDIDN'T MATCH Regexp!" >&2
                     continue
                 fi
                 
-                dir_size=$(echo "$dir_size" + $(wc -c "$entry" | awk '{ print $1 }') | bc)
+                dir_size=$(echo "$dir_size" +\
+                                 $(wc -c "$entry" | awk '{ print $1 }')\
+                           | bc)
         elif [[ -d $entry ]];
-            then echo -e "DEBUG:\t\tIs directory."; subdirs+=$entry
+            then echo -e "DEBUG:\t\tIs directory." >&2; subdirs+=("$entry")
         else
-            echo "DEBUG:\t\tISTO NÃO DEVIA ACONTECER!"
+            echo -e "DEBUG:\t\tISTO NÃO DEVIA ACONTECER!" >&2
         fi
     }
 
-    echo "DEBUG: dir_size: $dir_size"
-    echo "DEBUG: subdirs: $subdirs"
-    
-#     for dir in $subdirs
-#     {
-#         process_directory "$dir"
-#     }
-    
+    for d in "${subdirs[@]}"
+    {
+        local sub_size=0;
+        dir_size=$(echo "$dir_size + $(process_directory $d)" | bc)
+    }
+
+    echo "DEBUG: dir_size: $dir_size" >&2
+    echo -e "$search_dir\t$dir_size" >> $temp
+    echo $dir_size
 }
 
 process_directory $root_directory
+echo "==============================="
+echo "Outputting temp file $temp:"
+cat $temp
