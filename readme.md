@@ -62,6 +62,8 @@ Temos de cumprir estes requisitos:
     
 * Temos de tratar corretamente ficheiros com espaços e caracteres especiais.
 
+* Se o diretório pedido pelo utilizador não for encontrado, temos de mostrar um erro e abortar.
+
 * Sempre que não seja possível averiguar o tamanho de um ficheiro ou diretoria, devemos escrever `NA` na coluna onde normalmente indicaríamos o espaço ocupado pelo dito ficheiro ou diretoria.
     * Isto pode acontecer, por exemplo, por falta de permissões.
 
@@ -81,8 +83,10 @@ Iguais às de ordenação do `spacecheck.sh`.
 
 ### Exemplo de saída (do PDF do professor)
 
-#### `./staterate.sh spacecheck_20230923 spacecheck_20220923`
 
+```bash
+./staterate.sh spacecheck_20230923 spacecheck_20220923
+```
 ```
 SIZE NAME
 2668 sop/praticas/aula2 NEW
@@ -93,9 +97,12 @@ SIZE NAME
 -100 sop/dados REMOVED
 ```
 
-#### `./staterate.sh -r spacecheck_20230923 spacecheck_20220923`
 
-```SIZE NAME
+```bash
+./staterate.sh -r spacecheck_20230923 spacecheck_20220923
+```
+```
+SIZE NAME
 -100 sop/dados REMOVED
 0 sop
 0 sop/praticas/aula1
