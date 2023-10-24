@@ -64,12 +64,17 @@ done
 
 # Diretório pedido (último argumento)
 # FIXME: Temos de suportar vários diretórios pedidos.
-root_directory=${@:$OPTIND:1}
+root_directory="${@:$OPTIND:1}"
 
 if [[ -z "$root_directory" ]]; then
     echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
     bad_parameter
 fi
+
+for i in "$@"
+{
+    echo "DEBUG: PARAM: $i" >&2
+}
 
 
 ###########################################
@@ -86,45 +91,36 @@ function process_directory
 {
     local search_dir=$1
     local dir_size=0
-    declare -a subdirs
     
     echo "DEBUG: Entering directory $search_dir" >&2
     
-    for entry in "$search_dir"/*
-    {
+    ####### Iterar sobre ficheiros #######
+    while IFS= read -d $'\0' entry;
+    do
         echo -e "DEBUG:\tEntry: $entry" >&2
+        entry_wc=$(wc -c "$entry")
         
-        if [[ -h $entry ]];
-            then echo -e "DEBUG:\t\tIs symlink." >&2; continue    # Filtrar symlinks.
-        elif [[ -f $entry ]];
-                then echo -e "\t\tIs file." >&2
-                if [[ ! ($entry =~ "$filter_fileName_regexp") ]];
-                    then echo -e "DEBUG:\t\tDIDN'T MATCH Regexp!" >&2
-                    continue
-                fi
-                
-                dir_size=$(echo "$dir_size" +\
-                                 $(wc -c "$entry" | awk '{ print $1 }')\
-                           | bc)
-        elif [[ -d $entry ]];
-            then echo -e "DEBUG:\t\tIs directory." >&2; subdirs+=("$entry")
+        if [[ $? ]]; then
+            entry_size=$(echo $entry_wc | awk '{ print $1 }')
+            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
+            dir_size=$(echo "$dir_size + $entry_size" | bc)
         else
-            echo -e "DEBUG:\t\tISTO NÃO DEVIA ACONTECER!" >&2
+            echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
         fi
-    }
+    done < <(find "$search_dir" -maxdepth 1 -type f -print0 | grep -z "$filter_fileName_regexp")
 
-    for d in "${subdirs[@]}"
-    {
-        local sub_size=0;
-        dir_size=$(echo "$dir_size + $(process_directory $d)" | bc)
-    }
+    ####### Iterar sobre diretórios #######
+    while IFS= read -d $'\0' d; do
+        local sub_size=$(process_directory "$d")
+        dir_size=$(echo "$dir_size + $sub_size" | bc)
+    done < <(find "$search_dir" -mindepth 1 -maxdepth 1 -type d -print0)
 
     echo "DEBUG: dir_size: $dir_size" >&2
     echo -e "$search_dir\t$dir_size" >> $temp
     echo $dir_size
 }
 
-process_directory $root_directory > /dev/null
+process_directory "$root_directory" > /dev/null
 echo "==============================="
 echo "Outputting temp file $temp:"
 cat $temp
