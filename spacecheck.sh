@@ -124,7 +124,7 @@ function process_directory
     echo $dir_size
 }
 
-process_directory $root_directory
+process_directory $root_directory > /dev/null
 echo "==============================="
 echo "Outputting temp file $temp:"
 cat $temp
