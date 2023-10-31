@@ -49,6 +49,7 @@ out_sort_invert=false
 out_max_lines=-1
 
 
+# FIXME: Detetar argumentos inválidos.
 while getopts "n:d:s:arl:" optparam; do
     case $optparam in
         n ) filter_fileName_regexp=${OPTARG} ;;
@@ -84,7 +85,6 @@ for i in "$@"
 # Criar ficheiro temporário
 temp=$(mktemp) || temp=".spacecheck-$$.temp" || no_temp_file "temp"
 
-
 function process_directory
 # ARGUMENTOS:
 #   - $1: diretório a processar.
@@ -97,30 +97,54 @@ function process_directory
     ####### Iterar sobre ficheiros #######
     while IFS= read -d $'\0' entry;
     do
-        echo -e "DEBUG:\tEntry: $entry" >&2
+        # echo -e "DEBUG:\tEntry: $entry" >&2
         entry_wc=$(wc -c "$entry")
         
         if [[ $? ]]; then
             entry_size=$(echo $entry_wc | awk '{ print $1 }')
-            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
+            #echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
             dir_size=$(echo "$dir_size + $entry_size" | bc)
         else
             echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
         fi
+    # FIXME: Fitlrar também por tamanho mínimo.
     done < <(find "$search_dir" -maxdepth 1 -type f -print0 | grep -z "$filter_fileName_regexp")
 
-    ####### Iterar sobre diretórios #######
+    ####### Iterar sobre sub-diretórios #######
     while IFS= read -d $'\0' d; do
-        local sub_size=$(process_directory "$d")
-        dir_size=$(echo "$dir_size + $sub_size" | bc)
+        declare -i sub_size=$(process_directory "$d")
+        dir_size=$((dir_size + sub_size))
     done < <(find "$search_dir" -mindepth 1 -maxdepth 1 -type d -print0)
 
     echo "DEBUG: dir_size: $dir_size" >&2
-    echo -e "$search_dir\t$dir_size" >> $temp
+    #IFS= printf "%d$nextPart%s\0" $dir_size $search_dir >> $temp
+    echo -en "$dir_size $search_dir\0" >> $temp
     echo $dir_size
 }
 
+function sort_and_filter
+{
+    # FIXME: Ainda não inverte ordem nem corta o número de linhas.
+    declare -a sort_options=("-z")
+    
+    if [[ $out_sort_mode -eq $SORT_COLUMN_FILE_NAME ]]; then
+        sort_options+=('-k2')
+    elif [[ $out_sort_mode -eq $SORT_COLUMN_FILE_SIZE ]]; then
+        sort_options+=('-k1,1n')
+    else
+        echo "ERRO: Coluna desconhecida."
+        exit EXIT_CODE_UNEXPECTED_ERROR
+    fi
+    
+    echo "DEBUG: sort_options: ${sort_options[@]}"
+    sort $temp ${sort_options[@]} -o $temp
+}
+
 process_directory "$root_directory" > /dev/null
+sort_and_filter
 echo "==============================="
 echo "Outputting temp file $temp:"
-cat $temp
+# cat "$temp"
+sed -e "s/\\x0/\\n/g" $temp
+
+# FIXME: Formatar ficheiro de saída;
