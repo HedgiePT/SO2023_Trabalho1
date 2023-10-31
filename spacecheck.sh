@@ -45,7 +45,7 @@ filter_fileName_regexp=""
 filter_maxModifiedTime=""
 filter_minSize=""
 out_sort_mode=$SORT_COLUMN_DEFAULT
-out_sort_invert=false
+out_sort_invert=0
 out_max_lines=-1
 
 
@@ -56,8 +56,8 @@ while getopts "n:d:s:arl:" optparam; do
         d ) filter_maxModifiedTime=${OPTARG} ;;
         s ) filter_minSize=${OPTARG} ;;
         a ) out_sort_mode=$SORT_COLUMN_FILE_NAME ;;
-        r ) out_sort_invert=true ;;
-        l ) out_max_lines=${OPTARGS} ;;
+        r ) out_sort_invert=1 ;;
+        l ) out_max_lines=${OPTARG} ;;
         ? ) bad_parameter ;;
     esac
 done
@@ -97,12 +97,12 @@ function process_directory
     ####### Iterar sobre ficheiros #######
     while IFS= read -d $'\0' entry;
     do
-        # echo -e "DEBUG:\tEntry: $entry" >&2
+        echo -e "DEBUG:\tEntry: $entry" >&2
         entry_wc=$(wc -c "$entry")
         
         if [[ $? ]]; then
             entry_size=$(echo $entry_wc | awk '{ print $1 }')
-            #echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
+            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
             dir_size=$(echo "$dir_size + $entry_size" | bc)
         else
             echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
@@ -124,23 +124,30 @@ function process_directory
 
 function sort_and_filter
 {
-    # FIXME: Ainda não inverte ordem nem corta o número de linhas.
-    declare -a sort_options=("-z")
-    
+    declare -a sort_options=()
+
     if [[ $out_sort_mode -eq $SORT_COLUMN_FILE_NAME ]]; then
         sort_options+=('-k2')
     elif [[ $out_sort_mode -eq $SORT_COLUMN_FILE_SIZE ]]; then
-        sort_options+=('-k1,1n')
+        sort_options+=('-nk 1,1')
     else
         echo "ERRO: Coluna desconhecida."
         exit EXIT_CODE_UNEXPECTED_ERROR
     fi
-    
+
+    echo "DEBUG: out_sort_invert = $out_sort_invert"
+    if [[ $out_sort_invert -eq 0 ]]; then
+        sort_options+=('-r')
+    fi
+
     echo "DEBUG: sort_options: ${sort_options[@]}"
-    sort $temp ${sort_options[@]} -o $temp
+    sort $temp -z ${sort_options[@]} -o $temp
 
     if [[ $out_max_lines -gt $((-1)) ]]; then
-        cat $temp | head -n "$out_max_lines" > $temp
+        echo "DEBUG: max_lines: $out_max_lines"
+        headtemp=$(mktemp) || headtemp=".spacecheck-$$.temp" || no_temp_file "headtemp"
+        head -z -n "$out_max_lines" $temp > $headtemp
+        mv $headtemp $temp
     fi
 }
 
