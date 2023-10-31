@@ -98,8 +98,7 @@ function process_directory
         else
             echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
         fi
-    # FIXME: Fitlrar também por tamanho mínimo.
-    done < <(find "$search_dir" -maxdepth 1 -type f -print0 | grep -z "$filter_fileName_regexp")
+    done < <(find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c" -print0 | grep -z "$filter_fileName_regexp")
 
     ####### Iterar sobre sub-diretórios #######
     while IFS= read -d $'\0' d; do
