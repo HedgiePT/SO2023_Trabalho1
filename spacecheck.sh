@@ -138,13 +138,16 @@ function sort_and_filter
     
     echo "DEBUG: sort_options: ${sort_options[@]}"
     sort $temp ${sort_options[@]} -o $temp
+
+    if [[ $out_max_lines -gt $((-1)) ]]; then
+        cat $temp | head -n "$out_max_lines" > $temp
+    fi
 }
 
 process_directory "$root_directory" > /dev/null
 sort_and_filter
-echo "==============================="
-echo "Outputting temp file $temp:"
+echo "SIZE NAME $(date +%Y%m%d) ${@:1:$!}"
+cat $temp | sed -e "s/\\x0/\\n/g"
+#echo "==============================="
+#echo "Outputting temp file $temp:"
 # cat "$temp"
-sed -e "s/\\x0/\\n/g" $temp
-
-# FIXME: Formatar ficheiro de saída;
