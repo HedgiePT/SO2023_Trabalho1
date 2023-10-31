@@ -147,7 +147,7 @@ function sort_and_filter
 process_directory "$root_directory" > /dev/null
 sort_and_filter
 echo "SIZE NAME $(date +%Y%m%d) ${@:1:$!}"
-cat $temp | sed -e "s/\\x0/\\n/g"
+cat $temp | sed -ze "s/\n/\\\\n/g" | sed -e "s/\\x0/\\n/g"
 #echo "==============================="
 #echo "Outputting temp file $temp:"
 # cat "$temp"
