@@ -63,15 +63,6 @@ while getopts "n:d:s:arl:" optparam; do
 done
 
 
-# Diretório pedido (último argumento)
-# FIXME: Temos de suportar vários diretórios pedidos.
-root_directory="${@:$OPTIND:1}"
-
-if [[ -z "$root_directory" ]]; then
-    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
-    bad_parameter
-fi
-
 for i in "$@"
 {
     echo "DEBUG: PARAM: $i" >&2
@@ -151,9 +142,21 @@ function sort_and_filter
     fi
 }
 
-process_directory "$root_directory" > /dev/null
+requested_dirs=${@:$OPTIND}
+
+if [[ -z $requested_dirs ]]; then
+    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
+    bad_parameter
+fi
+
+for dir in $requested_dirs
+{
+    process_directory "$dir" > /dev/null
+}
+
+
 sort_and_filter
-echo "SIZE NAME $(date +%Y%m%d) ${@:1:$!}"
+echo "SIZE NAME $(date +%Y%m%d) ${@:1}"
 cat $temp | sed -ze "s/\n/\\\\n/g" | sed -e "s/\\x0/\\n/g"
 #echo "==============================="
 #echo "Outputting temp file $temp:"
