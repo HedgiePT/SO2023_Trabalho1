@@ -86,14 +86,21 @@ function process_directory
     echo "DEBUG: Entering directory $search_dir" >&2
     
     ####### Iterar sobre ficheiros #######
+    #######################################################################
+    # FIXME: A opção «-n» provavelmente deve olhar apenas para o nome do  #
+    #        ficheiro, e não para o caminho inteiro.                      #
+    #                                                                     #
+    # FIXME: Quando não é possível aceder a um diretório, devemos         #
+    #        escrever NA na coluna de tamanho.                            #      
+    #######################################################################
     while IFS= read -d $'\0' entry;
     do
-        echo -e "DEBUG:\tEntry: $entry" >&2
+ #       echo -e "DEBUG:\tEntry: $entry" >&2
         entry_wc=$(wc -c "$entry")
         
         if [[ $? ]]; then
             entry_size=$(echo $entry_wc | awk '{ print $1 }')
-            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
+#            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
             dir_size=$(echo "$dir_size + $entry_size" | bc)
         else
             echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
@@ -106,7 +113,7 @@ function process_directory
         dir_size=$((dir_size + sub_size))
     done < <(find "$search_dir" -mindepth 1 -maxdepth 1 -type d -print0)
 
-    echo "DEBUG: dir_size: $dir_size" >&2
+#    echo "DEBUG: dir_size: $dir_size" >&2
     #IFS= printf "%d$nextPart%s\0" $dir_size $search_dir >> $temp
     echo -en "$dir_size $search_dir\0" >> $temp
     echo $dir_size
@@ -121,20 +128,20 @@ function sort_and_filter
     elif [[ $out_sort_mode -eq $SORT_COLUMN_FILE_SIZE ]]; then
         sort_options+=('-nk 1,1')
     else
-        echo "ERRO: Coluna desconhecida."
+#        echo "ERRO: Coluna desconhecida."
         exit EXIT_CODE_UNEXPECTED_ERROR
     fi
 
-    echo "DEBUG: out_sort_invert = $out_sort_invert"
+#    echo "DEBUG: out_sort_invert = $out_sort_invert"
     if [[ $out_sort_invert -eq 0 ]]; then
         sort_options+=('-r')
     fi
 
-    echo "DEBUG: sort_options: ${sort_options[@]}"
+ #   echo "DEBUG: sort_options: ${sort_options[@]}"
     sort $temp -z ${sort_options[@]} -o $temp
 
     if [[ $out_max_lines -gt $((-1)) ]]; then
-        echo "DEBUG: max_lines: $out_max_lines"
+#        echo "DEBUG: max_lines: $out_max_lines"
         headtemp=$(mktemp) || headtemp=".spacecheck-$$.temp" || no_temp_file "headtemp"
         head -z -n "$out_max_lines" $temp > $headtemp
         mv $headtemp $temp
@@ -144,7 +151,7 @@ function sort_and_filter
 requested_dirs=${@:$OPTIND}
 
 if [[ -z $requested_dirs ]]; then
-    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
+#    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
     bad_parameter
 fi
 
