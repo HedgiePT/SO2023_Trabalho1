@@ -87,25 +87,18 @@ function process_directory
     
     ####### Iterar sobre ficheiros #######
     #######################################################################
-    # FIXME: A opção «-n» provavelmente deve olhar apenas para o nome do  #
-    #        ficheiro, e não para o caminho inteiro.                      #
-    #                                                                     #
     # FIXME: Quando não é possível aceder a um diretório, devemos         #
-    #        escrever NA na coluna de tamanho.                            #      
+    #        escrever NA na coluna de tamanho.                            #
     #######################################################################
-    while IFS= read -d $'\0' entry;
+    while IFS= read -d $'\0' entry_size;
     do
- #       echo -e "DEBUG:\tEntry: $entry" >&2
-        entry_wc=$(wc -c "$entry")
-        
-        if [[ $? ]]; then
-            entry_size=$(echo $entry_wc | awk '{ print $1 }')
-#            echo -e "DEBUG:\t\tSIZE: $entry_size" >&2
-            dir_size=$(echo "$dir_size + $entry_size" | bc)
-        else
-            echo -e "DEBUG:\t\tERRO DE ACESSO!" >&2
-        fi
-    done < <(find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c" -not -newermt "$filter_maxModifiedTime" -print0 | grep -z "$filter_fileName_regexp")
+        echo -e "DEBUG: $entry_size" >&2
+        dir_size=$((dir_size + entry_size))
+    done < <(find "$search_dir" -maxdepth 1 -type f\
+             -size "+0${filter_minSize}c"\
+             -not -newermt "$filter_maxModifiedTime" -printf "%s\\t%f\\0"\
+             | grep -z "[[:digit:]+[:space:]]$filter_fileName_regexp"\
+             | cut -zf '1')
 
     ####### Iterar sobre sub-diretórios #######
     while IFS= read -d $'\0' d; do
