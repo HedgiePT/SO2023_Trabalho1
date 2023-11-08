@@ -90,15 +90,14 @@ function process_directory
     # FIXME: Quando não é possível aceder a um diretório, devemos         #
     #        escrever NA na coluna de tamanho.                            #
     #######################################################################
-    while IFS= read -d $'\0' entry_size;
-    do
-        echo -e "DEBUG: $entry_size" >&2
-        dir_size=$((dir_size + entry_size))
-    done < <(find "$search_dir" -maxdepth 1 -type f\
-             -size "+0${filter_minSize}c"\
-             -not -newermt "$filter_maxModifiedTime" -printf "%s\\t%f\\0"\
-             | grep -z "[[:digit:]+[:space:]]$filter_fileName_regexp"\
-             | cut -zf '1')
+
+    dir_size=$(\
+        find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c"\
+        -not -newermt "$filter_maxModifiedTime" -printf ' %s\t%f\0'\
+        | grep -z "[[:digit:]+][[:space:]]$filter_fileName_regexp"\
+        | cut -zf 1\
+        | { tr '\0' '+'; echo '0' ;} \
+        | bc)
 
     ####### Iterar sobre sub-diretórios #######
     while IFS= read -d $'\0' d; do
