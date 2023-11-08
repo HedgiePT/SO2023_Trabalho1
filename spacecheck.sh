@@ -76,28 +76,32 @@ for i in "$@"
 # Criar ficheiro temporário
 temp=$(mktemp) || temp=".spacecheck-$$.temp" || no_temp_file "temp"
 
+
+
 function process_directory
 # ARGUMENTOS:
 #   - $1: diretório a processar.
 {
+    declare -i ret=$((0))
+    declare -i failed=$((0))
     local search_dir=$1
     local dir_size=0
     
     echo "DEBUG: Entering directory $search_dir" >&2
     
     ####### Iterar sobre ficheiros #######
-    #######################################################################
-    # FIXME: Quando não é possível aceder a um diretório, devemos         #
-    #        escrever NA na coluna de tamanho.                            #
-    #######################################################################
-
     dir_size=$(\
         find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c"\
-        -not -newermt "$filter_maxModifiedTime" -printf ' %s\t%f\0'\
+        -not -newermt "$filter_maxModifiedTime" -printf '%s\t%f\0'\
         | grep -z "[[:digit:]+][[:space:]]$filter_fileName_regexp"\
         | cut -zf 1\
         | { tr '\0' '+'; echo '0' ;} \
-        | bc)
+        | bc;
+        return ${PIPESTATUS[0]}
+        )
+
+    failed=$?
+    #echo "DEBUG: failed=$failed" >&2
 
     ####### Iterar sobre sub-diretórios #######
     while IFS= read -d $'\0' d; do
@@ -105,10 +109,13 @@ function process_directory
         dir_size=$((dir_size + sub_size))
     done < <(find "$search_dir" -mindepth 1 -maxdepth 1 -type d -print0)
 
-#    echo "DEBUG: dir_size: $dir_size" >&2
-    #IFS= printf "%d$nextPart%s\0" $dir_size $search_dir >> $temp
-    echo -en "$dir_size $search_dir\0" >> $temp
-    echo $dir_size
+    if ((failed)); then
+        dir_size=""
+    fi
+
+    ####### Imprimir resultado #######
+    echo -en "${dir_size:-NA} $search_dir\0" >> $temp     # Copiar p/ ficheiro
+    echo ${dir_size:-$((0))}                                # "Devolver" valor
 }
 
 function sort_and_filter
