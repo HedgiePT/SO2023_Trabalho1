@@ -36,15 +36,12 @@ function no_temp_file
 ######################################################################
 
 # Constantes para ajudar
-SORT_COLUMN_FILE_SIZE=1
-SORT_COLUMN_FILE_NAME=2
-SORT_COLUMN_DEFAULT=$SORT_COLUMN_FILE_SIZE
 
 # Variáveis
 filter_fileName_regexp=""
 filter_maxModifiedTime=""
 filter_minSize=""
-out_sort_mode=$SORT_COLUMN_DEFAULT
+out_sort_by_name=0
 out_sort_invert=0
 out_max_lines=-1
 
@@ -55,7 +52,7 @@ while getopts "n:d:s:arl:" optparam; do
         n ) filter_fileName_regexp=${OPTARG} ;;
         d ) filter_maxModifiedTime=${OPTARG} ;;
         s ) filter_minSize=${OPTARG} ;;
-        a ) out_sort_mode=$SORT_COLUMN_FILE_NAME ;;
+        a ) out_sort_by_name=1 ;;
         r ) out_sort_invert=1 ;;
         l ) out_max_lines=${OPTARG} ;;
         ? ) bad_parameter ;;
@@ -85,7 +82,6 @@ function process_directory
 # ARGUMENTOS:
 #   - $1: diretório a processar.
 {
-    declare -i ret=$((0))
     declare -i failed=$((0))
     local search_dir=$1
     local dir_size=0
@@ -125,17 +121,13 @@ function sort_and_filter
 {
     declare -a sort_options=()
 
-    if [[ $out_sort_mode -eq $SORT_COLUMN_FILE_NAME ]]; then
+    if ((out_sort_by_name)); then
         sort_options+=('-k2')
-    elif [[ $out_sort_mode -eq $SORT_COLUMN_FILE_SIZE ]]; then
-        sort_options+=('-nk 1,1')
     else
-#        echo "ERRO: Coluna desconhecida."
-        exit EXIT_CODE_UNEXPECTED_ERROR
+        sort_options+=('-nk1,1')
     fi
 
-#    echo "DEBUG: out_sort_invert = $out_sort_invert"
-    if [[ $out_sort_invert -eq 0 ]]; then
+    if ((out_sort_invert == out_sort_by_name)); then
         sort_options+=('-r')
     fi
 
