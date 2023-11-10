@@ -9,6 +9,12 @@ function help_usage()
     echo "Utilização: $0 [parâmetros] relatório1 relatório2" >&2
 }
 
+
+function debug
+{
+    echo "$1" >&2
+}
+
 ####################
 # Em caso de erro ##
 ####################
@@ -74,5 +80,19 @@ function process_reports
     declare -A new
     declare -A old
     
+    while read -r line; do
+        size=$(echo $line | cut -d ' ' -f 1)
+        dir=$(echo $line | cut -d ' ' -f 2-)
+        
+        new[$dir]=$size
+    done < <(tail -n +2 $1)
     
+    while read -r line; do
+        size=$(echo $line | cut -d ' ' -f 1)
+        dir=$(echo $line | cut -d ' ' -f 2-)
+        
+        old[$dir]=$size
+    done < <(tail -n +2 $2)
 }
+
+process_reports $1 $2
