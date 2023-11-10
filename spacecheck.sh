@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+###############################################################################
+# FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!#
+#                                                                             #
+# * Ainda não podemos passar ao programa diretórios com espaços.              #
+#                                                                             #
+###############################################################################
+
 ################################
 # Escrever mensagens de ajuda ##
 ################################
