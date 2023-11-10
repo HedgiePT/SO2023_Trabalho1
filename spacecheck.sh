@@ -76,7 +76,10 @@ for i in "$@"
 # Criar ficheiro temporário
 temp=$(mktemp) || temp=".spacecheck-$$.temp" || no_temp_file "temp"
 
-
+#
+if [[ -n $filter_maxModifiedTime ]]; then
+    find_arg_newer="-not -newermt $filter_maxModifiedTime"
+fi
 
 function process_directory
 # ARGUMENTOS:
@@ -92,7 +95,7 @@ function process_directory
     ####### Iterar sobre ficheiros #######
     dir_size=$(\
         find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c"\
-        -not -newermt "$filter_maxModifiedTime" -printf '%s\t%f\0'\
+        $find_arg_newer -printf '%s\t%f\0'\
         | grep -z "[[:digit:]+][[:space:]]$filter_fileName_regexp"\
         | cut -zf 1\
         | { tr '\0' '+'; echo '0' ;} \
