@@ -3,10 +3,8 @@
 ###############################################################################
 # FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!#
 #                                                                             #
-# * Ainda não podemos passar ao programa diretórios com espaços.              #
-#                                                                             #
 # * Se um ficheiro não for acessível, mas for filtrado pelo grep, não o       #
-#   deveriamos entrar no estado "fdailed" (i.e. escrever "NA" no tamanho      #
+#   deveriamos entrar no estado "failed" (i.e. escrever "NA" no tamanho       #
 #   ocupado).                                                                 #
 #                                                                             #
 ###############################################################################
@@ -153,18 +151,10 @@ function sort_and_filter
     fi
 }
 
-requested_dirs=${@:$OPTIND}
-
-if [[ -z $requested_dirs ]]; then
-#    echo "$0: ERRO: Não foi especificado nenhum diretório." >&2
-    bad_parameter
-fi
-
-for dir in $requested_dirs
+for ((i = OPTIND; i <= $#; i++))
 {
-    process_directory "$dir" > /dev/null
+    process_directory "${@:$i:1}" > /dev/null
 }
-
 
 sort_and_filter
 echo "SIZE NAME $(date +%Y%m%d) ${@:1}"
