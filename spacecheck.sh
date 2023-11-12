@@ -51,7 +51,7 @@ function no_temp_file
 # Variáveis
 filter_fileName_regexp=""
 filter_maxModifiedTime=""
-filter_minSize=""
+filter_minSize=1
 out_sort_by_name=0
 out_sort_invert=0
 out_max_lines=-1
@@ -101,7 +101,7 @@ function process_directory
     
     ####### Iterar sobre ficheiros #######
     dir_size=$(\
-        find "$search_dir" -maxdepth 1 -type f -size "+0${filter_minSize}c"\
+        find "$search_dir" -maxdepth 1 -type f -size "+0$((filter_minSize-1))c"\
         $find_arg_newer -printf '%s\t%f\0'\
         | grep -z "[[:digit:]+][[:space:]]$filter_fileName_regexp"\
         | cut -zf 1\
