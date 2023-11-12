@@ -5,6 +5,10 @@
 #                                                                             #
 # * Ainda não podemos passar ao programa diretórios com espaços.              #
 #                                                                             #
+# * Se um ficheiro não for acessível, mas for filtrado pelo grep, não o       #
+#   deveriamos entrar no estado "fdailed" (i.e. escrever "NA" no tamanho      #
+#   ocupado).                                                                 #
+#                                                                             #
 ###############################################################################
 
 ################################
