@@ -69,12 +69,18 @@ for i in "$@"
     echo "DEBUG: PARAM: $i" >&2
 }
 
+if ((OPTIND+1 != $#)); then
+    echo "$0: ERRO: Não foram especificados dois relatórios." >&2
+    help_usage
+    exit $EXIT_CODE_BAD_ARGUMENT
+fi
+
 ######################################################################
 # Carregar relatórios para arrays associativos (dicionários)  ########
 ######################################################################
 
-report_new=${@:$OPTIND:1}
-report_old=${@:$OPTIND+1:1}
+report_new="${@:$OPTIND:1}"
+report_old="${@:$((OPTIND+1)):1}"
 
 declare -A new
 declare -A old
@@ -85,7 +91,7 @@ while read -r line; do
     dir=$(cut -d ' ' -f 2- <<<$line)
 
     new[$dir]=$size
-done < <(tail -n +2 $report_new)
+done < <(tail -n +2 "${report_new[*]}")
 
 echo "A carregar o relatório velho..." >&2
 while read -r line; do
@@ -93,7 +99,7 @@ while read -r line; do
     dir=$(echo $line | cut -d ' ' -f 2-)
 
     old[$dir]=$size
-done < <(tail -n +2 $report_old)
+done < <(tail -n +2 "${report_old[*]}")
 
 #echo "DEBUG: new:"$'\n'"${!new[@]}" >&2
 #echo "DEBUG: old:"$'\n'"${!old[@]}" >&2
