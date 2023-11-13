@@ -118,6 +118,17 @@ while getopts "n:d:s:arl:h" optparam; do
 done
 
 
+##########################################################################
+# Garantir que pelo menos um diretório foi especificado pelo utilizador. #
+##########################################################################
+
+if ((OPTIND > $#)); then
+    echo "ERRO: Não foi especificado nenhum diretório." >&2
+    help_usage
+    exit $EXIT_CODE_BAD_ARGUMENT
+fi
+
+
 ###########################################
 # Processar diretórios e calcular espaço ##
 ###########################################
@@ -200,8 +211,11 @@ for ((i = OPTIND; i <= $#; i++))
 }
 
 sort_and_filter
+
 echo "SIZE NAME $(date +%Y%m%d) ${@:1}"
 cat $temp | sed -ze "s/\n/\\\\n/g" | sed -e "s/\\x0/\\n/g"
+rm $temp
+
 #echo "==============================="
 #echo "Outputting temp file $temp:"
 # cat "$temp"
