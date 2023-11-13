@@ -11,9 +11,26 @@
 # Escrever mensagens de ajuda ##
 ################################
 
-function help_usage()
+function help_usage
 {
     echo "Utilização: $0 [parâmetros] relatório_novo relatório_velho" >&2
+}
+
+function help_expanded
+{
+    echo -e "\
+$0: Um script que analiza a evolução do tamanho de diretórios.
+
+Utilização: $0 [parâmetros] relatório_novo relatório_velho.
+
+Parâmetros:
+\t-a\tOrdenar por nome. Sem esta opção, o relatório é ordenado por tamanho.
+\t-r\tInverter ordenação.
+\t-l N\tMostrar apenas as primeiras N linhas do relatório. (O cabeçalho não
+\t\tconta para este limite e é sempre impresso.)
+\t-h\tMostra esta ajuda.">&2
+
+    exit 0
 }
 
 ####################
@@ -54,11 +71,12 @@ out_max_lines=-1
 
 
 # FIXME: Detetar argumentos inválidos.
-while getopts "arl:" optparam; do
+while getopts "arl:h" optparam; do
     case $optparam in
         a ) out_sort_by_name=1 ;;
         r ) out_sort_invert=1 ;;
         l ) out_max_lines=${OPTARG} ;;
+        h ) help_expanded ;;
         ? ) bad_parameter ;;
     esac
 done

@@ -3,7 +3,7 @@
 ###############################################################################
 # FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!    FIXME!#
 #                                                                             #
-# * Se um ficheiro não for acessível, mas for filtrado pelo grep, não o       #
+# * Se um ficheiro não for acessível, mas for filtrado pelo grep, não         #
 #   deveriamos entrar no estado "failed" (i.e. escrever "NA" no tamanho       #
 #   ocupado).                                                                 #
 #                                                                             #
@@ -15,7 +15,35 @@
 
 function help_usage()
 {
-    echo "Utilização: $0 [parâmetros] diretório" >&2
+    echo "Utilização: $0 [parâmetros] diretório [diretório ...]" >&2
+}
+
+function help_expanded
+{
+    echo -e "\
+$0: Um script que analiza a ocupação do espaço de diretórios.
+
+Utilização: $0 [parâmetros] diretório [diretório ...].
+Pode especificar mais do que um diretório.
+
+Parâmetros:
+  Filtro:
+\t-n REXP\tFiltrar análise por expressão regular. Apenas os ficheiros que
+\t\tcorrepondam a REXP serão contabilizados.
+\t-d DATA\tFiltra análise por data de modificação máxima. Ficheiros modificados
+\t\tpela última vez numa data mais antiga não serão contabilizados.
+\t-s TAMN\tFiltra a análise por tamanho máximo. Ficheiros mais pequenos não
+\t\tserão contabilizados.
+
+  Formatação do resultado:
+\t-a\tOrdenar por nome. Sem esta opção, o relatório é ordenado por tamanho.
+\t-r\tInverter ordenação.
+\t-l N\tMostrar apenas as primeiras N linhas do relatório. (O cabeçalho não
+\t\tconta para este limite e é sempre impresso.)
+
+\t-h\tMostra esta ajuda.">&2
+
+    exit 0
 }
 
 ####################
@@ -56,7 +84,7 @@ out_max_lines=-1
 
 
 # FIXME: Detetar argumentos inválidos.
-while getopts "n:d:s:arl:" optparam; do
+while getopts "n:d:s:arl:h" optparam; do
     case $optparam in
         n ) filter_fileName_regexp=${OPTARG} ;;
         d ) filter_maxModifiedTime=${OPTARG} ;;
@@ -64,6 +92,7 @@ while getopts "n:d:s:arl:" optparam; do
         a ) out_sort_by_name=1 ;;
         r ) out_sort_invert=1 ;;
         l ) out_max_lines=${OPTARG} ;;
+        h ) help_expanded ;;
         ? ) bad_parameter ;;
     esac
 done
@@ -95,7 +124,7 @@ function process_directory
     local search_dir=$1
     local dir_size=0
     
-    echo "DEBUG: Entering directory $search_dir" >&2
+    echo "A examinar: $search_dir" >&2
     
     ####### Iterar sobre ficheiros #######
     dir_size=$(\
