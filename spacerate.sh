@@ -13,7 +13,8 @@
 
 function help_usage
 {
-    echo "Utilização: $0 [parâmetros] relatório_novo relatório_velho" >&2
+    echo "Utilização: $0 [parâmetros] relatório_novo relatório_velho
+Use -h para obter mais ajuda." >&2
 }
 
 function help_expanded
@@ -48,6 +49,12 @@ function bad_parameter
     exit $EXIT_CODE_BAD_PARAMETER
 }
 
+function bad_argument
+{
+    echo "opção -$1: o argumento '$2' é inválido." >&2
+    exit $EXIT_CODE_BAD_ARGUMENT
+}
+
 function no_temp_file
 {
     echo "$0: Não foi possível criar um ficheiro temporário para a var \$$1" >&2
@@ -69,13 +76,15 @@ out_sort_by_name=0
 out_sort_invert=0
 out_max_lines=-1
 
-
-# FIXME: Detetar argumentos inválidos.
 while getopts "arl:h" optparam; do
     case $optparam in
         a ) out_sort_by_name=1 ;;
         r ) out_sort_invert=1 ;;
-        l ) out_max_lines=${OPTARG} ;;
+        l ) out_max_lines=${OPTARG}
+            if [[ ! $OPTARG =~ ^[0-9]+$ ]] || ((OPTARG < 1)); then
+                bad_argument $optparam ${OPTARG[@]}
+            fi
+            ;;
         h ) help_expanded ;;
         ? ) bad_parameter ;;
     esac

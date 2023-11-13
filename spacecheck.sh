@@ -15,7 +15,8 @@
 
 function help_usage()
 {
-    echo "Utilização: $0 [parâmetros] diretório [diretório ...]" >&2
+    echo "Utilização: $0 [parâmetros] diretório [diretório ...]
+Use -h para obter mais ajuda." >&2
 }
 
 function help_expanded
@@ -61,6 +62,12 @@ function bad_parameter
     exit $EXIT_CODE_BAD_PARAMETER
 }
 
+function bad_argument
+{
+    echo "opção -$1: o argumento '$2' é inválido." >&2
+    exit $EXIT_CODE_BAD_ARGUMENT
+}
+
 function no_temp_file
 {
     echo "$0: Não foi possível criar um ficheiro temporário para a var \$$1" >&2
@@ -82,16 +89,29 @@ out_sort_by_name=0
 out_sort_invert=0
 out_max_lines=-1
 
+# Expressão regular para testar números
+re_num='^[0-9]+$'
 
-# FIXME: Detetar argumentos inválidos.
 while getopts "n:d:s:arl:h" optparam; do
     case $optparam in
         n ) filter_fileName_regexp=${OPTARG} ;;
-        d ) filter_maxModifiedTime=${OPTARG} ;;
-        s ) filter_minSize=${OPTARG} ;;
+        d ) filter_maxModifiedTime=${OPTARG}
+            if ! date -d "${OPTARG[@]}" &> /dev/null; then
+                bad_argument $optparam "${OPTARG[@]}"
+            fi
+            ;;
+        s ) filter_minSize=${OPTARG}
+            if [[ ! $OPTARG =~ $re ]] || ((OPTARG < 1)); then
+                bad_argument $optparam ${OPTARG[@]};
+            fi
+            ;;
         a ) out_sort_by_name=1 ;;
         r ) out_sort_invert=1 ;;
-        l ) out_max_lines=${OPTARG} ;;
+        l ) out_max_lines=${OPTARG}
+            if [[ ! $OPTARG =~ $re ]] || ((OPTARG < 1)); then
+                bad_argument $optparam ${OPTARG[@]}
+            fi
+            ;;
         h ) help_expanded ;;
         ? ) bad_parameter ;;
     esac
