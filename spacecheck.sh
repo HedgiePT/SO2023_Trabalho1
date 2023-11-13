@@ -118,12 +118,6 @@ while getopts "n:d:s:arl:h" optparam; do
 done
 
 
-for i in "$@"
-{
-    echo "DEBUG: PARAM: $i" >&2
-}
-
-
 ###########################################
 # Processar diretórios e calcular espaço ##
 ###########################################
