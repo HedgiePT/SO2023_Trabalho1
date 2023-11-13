@@ -91,11 +91,6 @@ while getopts "arl:h" optparam; do
 done
 
 
-for i in "$@"
-{
-    echo "DEBUG: PARAM: $i" >&2
-}
-
 if ((OPTIND+1 != $#)); then
     echo "$0: ERRO: Não foram especificados dois relatórios." >&2
     help_usage
@@ -105,6 +100,8 @@ fi
 ######################################################################
 # Carregar relatórios para arrays associativos (dicionários)  ########
 ######################################################################
+terminal=/dev/pts/1
+columns=$(stty -a <"$terminal" | grep -Po '(?<=columns )\d+')
 
 report_new="${@:$OPTIND:1}"
 report_old="${@:$((OPTIND+1)):1}"
@@ -113,7 +110,9 @@ declare -A new
 declare -A old
 
 echo "A carregar o relatório novo..." >&2
+i=0
 while read -r line; do
+    echo -n $'\t'"linha $((++i))"$'\r' >&2 #: ${line:0:$((columns-22))}"$'\r' >&2
     size=$(cut -d ' ' -f 1 <<<$line)
     dir=$(cut -d ' ' -f 2- <<<$line)
 
@@ -121,15 +120,14 @@ while read -r line; do
 done < <(tail -n +2 "${report_new[*]}")
 
 echo "A carregar o relatório velho..." >&2
+i=0
 while read -r line; do
+    echo -n $'\t'"linha $((++i))"$'\r' >&2 #: ${line:0:$((columns-22))}"$'\r' >&2
     size=$(echo $line | cut -d ' ' -f 1)
     dir=$(echo $line | cut -d ' ' -f 2-)
 
     old[$dir]=$size
 done < <(tail -n +2 "${report_old[*]}")
-
-#echo "DEBUG: new:"$'\n'"${!new[@]}" >&2
-#echo "DEBUG: old:"$'\n'"${!old[@]}" >&2
 
 #################################################
 # Comparar dicionários e processar diferenças   #
